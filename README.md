@@ -4,6 +4,8 @@
 
 **VPNBridge** is a powerful, open-source tool designed to simplify the management of L2TP to PPTP VPN bridges on Linux systems. With a modern web interface, RESTful API, and robust debugging tools, it’s perfect for network administrators and enthusiasts looking to configure, monitor, and control VPN connections with ease. Whether you’re bridging networks for macOS compatibility or managing enterprise VPNs, VPNBridge has you covered! 😎
 
+![Zrzut ekranu](images/VPN_Bridge_webiste.jpg)
+
 ---
 
 ## ✨ **Key Features**
