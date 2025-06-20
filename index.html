@@ -1,0 +1,1437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VPN Bridge Manager</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --primary-light: #dbeafe;
+            --secondary: #7c3aed;
+            --success: #059669;
+            --success-light: #d1fae5;
+            --warning: #d97706;
+            --warning-light: #fef3c7;
+            --error: #dc2626;
+            --error-light: #fee2e2;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+            --white: #ffffff;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+
+        .language-selector {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--gray-100);
+            border-radius: 0.5rem;
+            padding: 0.25rem;
+            border: 1px solid var(--gray-200);
+        }
+
+        .language-btn {
+            padding: 0.375rem 0.75rem;
+            border: none;
+            background: transparent;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--gray-600);
+        }
+
+        .language-btn.active {
+            background: var(--white);
+            color: var(--primary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .language-btn:hover:not(.active) {
+            color: var(--gray-900);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--gray-50);
+            color: var(--gray-900);
+            line-height: 1.6;
+        }
+
+        /* Header */
+        .header {
+            background: var(--white);
+            border-bottom: 1px solid var(--gray-200);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .logo .material-icons {
+            font-size: 2rem;
+            background: var(--primary);
+            color: var(--white);
+            padding: 0.5rem;
+            border-radius: 0.75rem;
+        }
+
+        .header-subtitle {
+            color: var(--gray-500);
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .current-time {
+            text-align: right;
+        }
+
+        .time-label {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+        }
+
+        .time-value {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        /* Stack panels */
+        .stack-panel {
+            background: var(--white);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-200);
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .panel-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        .panel-icon {
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            font-size: 1.25rem !important;
+        }
+
+        /* System Status Panel */
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .status-item {
+            background: var(--gray-50);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border: 1px solid var(--gray-200);
+            transition: all 0.2s ease;
+        }
+
+        .status-item:hover {
+            background: var(--white);
+            box-shadow: var(--shadow-md);
+        }
+
+        .status-item-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+
+        .status-label {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            font-weight: 500;
+        }
+
+        .status-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        .status-chip.active {
+            background: var(--success-light);
+            color: var(--success);
+        }
+
+        .status-chip.inactive {
+            background: var(--error-light);
+            color: var(--error);
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .status-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        /* VPN Management Panel */
+        .management-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--white);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: var(--white);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-success:hover {
+            background: #047857;
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background: var(--error);
+            color: var(--white);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-danger:hover {
+            background: #b91c1c;
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+
+        .btn-outline {
+            background: var(--white);
+            color: var(--gray-700);
+            border: 1px solid var(--gray-300);
+        }
+
+        .btn-outline:hover {
+            background: var(--gray-50);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        /* VPN Cards Grid */
+        .vpn-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .vpn-card {
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .vpn-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+            border-color: var(--primary);
+        }
+
+        .vpn-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--gray-300);
+            border-radius: 0.25rem 0 0 0.25rem;
+            transition: background-color 0.2s ease;
+        }
+
+        .vpn-card.active::before {
+            background: var(--success);
+        }
+
+        .vpn-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .vpn-name {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 0.25rem;
+        }
+
+        .vpn-server {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+        }
+
+        .vpn-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background: var(--gray-50);
+            border-radius: 0.5rem;
+        }
+
+        .vpn-detail {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .vpn-detail-label {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+            font-weight: 600;
+        }
+
+        .vpn-detail-value {
+            font-size: 0.875rem;
+            color: var(--gray-900);
+            font-weight: 500;
+        }
+
+        .vpn-description {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+            margin-bottom: 1.5rem;
+            font-style: italic;
+        }
+
+        .vpn-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.8125rem;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1.5rem;
+            color: var(--gray-500);
+        }
+
+        .empty-state .material-icons {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+
+        .empty-state-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--gray-700);
+        }
+
+        .empty-state-description {
+            font-size: 0.875rem;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--white);
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-xl);
+            animation: modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-700);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            background: var(--white);
+            color: var(--gray-900);
+            transition: all 0.2s ease;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .input-field::placeholder {
+            color: var(--gray-400);
+        }
+
+        .logs-container {
+            background: var(--gray-900);
+            color: var(--gray-100);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.875rem;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 1rem;
+            line-height: 1.5;
+        }
+
+        .logs-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .logs-container::-webkit-scrollbar-track {
+            background: var(--gray-700);
+            border-radius: 4px;
+        }
+
+        .logs-container::-webkit-scrollbar-thumb {
+            background: var(--gray-500);
+            border-radius: 4px;
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 6rem;
+            right: 1.5rem;
+            padding: 1rem 1.25rem;
+            border-radius: 0.75rem;
+            color: var(--white);
+            font-weight: 600;
+            z-index: 1001;
+            transform: translateX(400px);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            max-width: 320px;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background: var(--success);
+        }
+
+        .notification.error {
+            background: var(--error);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .header-right {
+                justify-content: center;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            .stack-panel {
+                padding: 1.5rem;
+            }
+
+            .status-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .vpn-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .vpn-details {
+                grid-template-columns: 1fr;
+            }
+
+            .vpn-actions {
+                flex-direction: column;
+            }
+
+            .management-actions {
+                flex-direction: column;
+            }
+
+            .modal-content {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .btn {
+                justify-content: center;
+                width: 100%;
+            }
+
+            .vpn-card-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+            }
+        }
+
+        /* Animations */
+        .refresh-indicator {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <div class="logo">
+                    <span class="material-icons">router</span>
+                    <div>
+                        <div>VPN Bridge Manager</div>
+                        <div class="header-subtitle" data-lang="subtitle">L2TP ↔ PPTP Bridge Management</div>
+                    </div>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="language-selector">
+                    <button class="language-btn active" onclick="setLanguage('en')" id="lang-en">EN</button>
+                    <button class="language-btn" onclick="setLanguage('pl')" id="lang-pl">PL</button>
+                </div>
+                <div class="current-time">
+                    <div class="time-label" data-lang="current-time">Current Time</div>
+                    <div class="time-value" id="currentTime">--:--:--</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- System Status Panel -->
+        <div class="stack-panel">
+            <div class="panel-header">
+                <span class="material-icons panel-icon">monitor_heart</span>
+                <h2 class="panel-title" data-lang="system-status">System Status</h2>
+                <button class="btn btn-outline btn-sm" onclick="refreshStatus()" style="margin-left: auto;">
+                    <span class="material-icons" style="font-size: 1rem;" id="statusRefreshIcon">refresh</span>
+                    <span data-lang="refresh">Refresh</span>
+                </button>
+            </div>
+
+            <div class="status-grid" id="systemStatusGrid">
+                <div class="status-item">
+                    <div class="status-item-header">
+                        <span class="status-label" data-lang="main-status">Main Status</span>
+                        <div class="status-chip" id="systemStatusChip">
+                            <div class="status-dot"></div>
+                            <span data-lang="checking">Checking...</span>
+                        </div>
+                    </div>
+                    <div class="status-value" id="mainStatus">System</div>
+                </div>
+
+                <div class="status-item">
+                    <div class="status-item-header">
+                        <span class="status-label" data-lang="l2tp-server">L2TP Server</span>
+                    </div>
+                    <div class="status-value" id="l2tpStatus">-</div>
+                </div>
+
+                <div class="status-item">
+                    <div class="status-item-header">
+                        <span class="status-label" data-lang="active-vpn">Active VPN</span>
+                    </div>
+                    <div class="status-value" id="activeVpn" data-lang="none">None</div>
+                </div>
+
+                <div class="status-item">
+                    <div class="status-item-header">
+                        <span class="status-label" data-lang="load">Load</span>
+                    </div>
+                    <div class="status-value" id="systemLoad">-</div>
+                </div>
+
+                <div class="status-item">
+                    <div class="status-item-header">
+                        <span class="status-label" data-lang="memory">Memory</span>
+                    </div>
+                    <div class="status-value" id="memoryUsage">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VPN Management Panel -->
+        <div class="stack-panel">
+            <div class="panel-header">
+                <span class="material-icons panel-icon">vpn_key</span>
+                <h2 class="panel-title" data-lang="vpn-management">VPN Management</h2>
+                <div style="margin-left: auto; display: flex; gap: 0.75rem;">
+                    <button class="btn btn-primary btn-sm" onclick="showAddVpnModal()">
+                        <span class="material-icons" style="font-size: 1rem;">add</span>
+                        <span data-lang="add-vpn">Add VPN</span>
+                    </button>
+                    <button class="btn btn-outline btn-sm" onclick="refreshVpnList()">
+                        <span class="material-icons" style="font-size: 1rem;" id="refreshIcon">refresh</span>
+                        <span data-lang="refresh-list">Refresh List</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="vpn-grid" id="vpnGrid">
+                <!-- VPN cards will be loaded here -->
+                <div class="empty-state">
+                    <span class="material-icons">vpn_key_off</span>
+                    <div class="empty-state-title" data-lang="loading-vpns">Loading VPN connections...</div>
+                    <div class="empty-state-description" data-lang="please-wait">Please wait</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Logs Panel -->
+        <div class="stack-panel">
+            <div class="panel-header">
+                <span class="material-icons panel-icon">terminal</span>
+                <h2 class="panel-title" data-lang="system-logs">System Logs</h2>
+                <button class="btn btn-outline btn-sm" onclick="refreshLogs()" style="margin-left: auto;">
+                    <span class="material-icons" style="font-size: 1rem;" id="logsRefreshIcon">refresh</span>
+                    <span data-lang="refresh">Refresh</span>
+                </button>
+            </div>
+
+            <div class="logs-container" id="logsContent">
+                <pre data-lang="loading-logs">Loading logs...</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add VPN Modal -->
+    <div class="modal" id="addVpnModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="material-icons panel-icon">add_circle</span>
+                <div class="modal-title" data-lang="add-new-vpn">Add New VPN</div>
+            </div>
+            <form id="addVpnForm">
+                <div class="input-group">
+                    <label class="input-label" for="vpnName" data-lang="vpn-name">VPN Name</label>
+                    <input type="text" id="vpnName" class="input-field" required data-placeholder="vpn-name-placeholder">
+                </div>
+                <div class="input-group">
+                    <label class="input-label" for="vpnServer" data-lang="pptp-server">PPTP Server</label>
+                    <input type="text" id="vpnServer" class="input-field" required placeholder="vpn.example.com">
+                </div>
+                <div class="input-group">
+                    <label class="input-label" for="vpnUsername" data-lang="username">Username</label>
+                    <input type="text" id="vpnUsername" class="input-field" required placeholder="username">
+                </div>
+                <div class="input-group">
+                    <label class="input-label" for="vpnPassword" data-lang="password">Password</label>
+                    <input type="password" id="vpnPassword" class="input-field" required placeholder="password">
+                </div>
+                <div class="input-group">
+                    <label class="input-label" for="vpnDescription" data-lang="description-optional">Description (optional)</label>
+                    <input type="text" id="vpnDescription" class="input-field" data-placeholder="description-placeholder">
+                </div>
+                <div class="management-actions" style="margin-top: 2rem; margin-bottom: 0;">
+                    <button type="submit" class="btn btn-success">
+                        <span class="material-icons">save</span>
+                        <span data-lang="save-vpn">Save VPN</span>
+                    </button>
+                    <button type="button" class="btn btn-outline" onclick="closeModal('addVpnModal')">
+                        <span class="material-icons">close</span>
+                        <span data-lang="cancel">Cancel</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let vpnList = [];
+        let systemStatus = {};
+        let currentLanguage = 'en';
+
+        // Language translations
+        const translations = {
+            en: {
+                'current-time': 'Current Time',
+                'subtitle': 'L2TP ↔ PPTP Bridge Management',
+                'system-status': 'System Status',
+                'refresh': 'Refresh',
+                'main-status': 'Main Status',
+                'checking': 'Checking...',
+                'l2tp-server': 'L2TP Server',
+                'active-vpn': 'Active VPN',
+                'none': 'None',
+                'load': 'Load',
+                'memory': 'Memory',
+                'system-logs': 'System Logs',
+                'vpn-management': 'VPN Management',
+                'add-vpn': 'Add VPN',
+                'refresh-list': 'Refresh List',
+                'loading-vpns': 'Loading VPN connections...',
+                'please-wait': 'Please wait',
+                'no-vpns-configured': 'No VPNs configured',
+                'add-first-vpn': 'Add your first VPN to get started',
+                'error-loading-vpns': 'Error loading VPN list',
+                'check-server-connection': 'Check server connection',
+                'connected': 'Connected',
+                'disconnected': 'Disconnected',
+                'user': 'User',
+                'created': 'Created',
+                'last-connection': 'Last Connection',
+                'never': 'Never',
+                'status': 'Status',
+                'active': 'Active',
+                'inactive': 'Inactive',
+                'operational': 'Operational',
+                'bridge-active': 'Bridge Active',
+                'bridge': 'Bridge',
+                'connect': 'Connect',
+                'disconnect': 'Disconnect',
+                'delete': 'Delete',
+                'add-new-vpn': 'Add New VPN',
+                'vpn-name': 'VPN Name',
+                'vpn-name-placeholder': 'e.g. Warsaw Office',
+                'pptp-server': 'PPTP Server',
+                'username': 'Username',
+                'password': 'Password',
+                'description-optional': 'Description (optional)',
+                'description-placeholder': 'VPN connection description',
+                'save-vpn': 'Save VPN',
+                'cancel': 'Cancel',
+                'system-logs': 'System Logs',
+                'loading-logs': 'Loading logs...',
+                'close': 'Close',
+                'connecting': 'Connecting to VPN...',
+                'error-connecting': '✗ Error connecting to VPN',
+                'error-disconnecting': '✗ Error disconnecting VPN',
+                'confirm-delete': 'Are you sure you want to delete this VPN?',
+                'vpn-deleted': '✓ VPN has been deleted',
+                'error-deleting': '✗ Error deleting VPN',
+                'vpn-added': '✓ VPN has been added',
+                'error-adding': '✗ Error adding VPN',
+                'no-logs': 'No logs available',
+                'error-loading-logs': '✗ Error loading logs',
+                'api-error': 'API Error',
+                'error': 'Error'
+            },
+            pl: {
+                'current-time': 'Aktualny czas',
+                'subtitle': 'Zarządzanie mostkiem L2TP ↔ PPTP',
+                'system-status': 'Status Systemu',
+                'refresh': 'Odśwież',
+                'main-status': 'Status Główny',
+                'checking': 'Sprawdzanie...',
+                'l2tp-server': 'Serwer L2TP',
+                'active-vpn': 'Aktywny VPN',
+                'none': 'Brak',
+                'load': 'Obciążenie',
+                'memory': 'Pamięć',
+                'system-logs': 'Logi systemu',
+                'vpn-management': 'Zarządzanie VPN',
+                'add-vpn': 'Dodaj VPN',
+                'refresh-list': 'Odśwież listę',
+                'loading-vpns': 'Ładowanie połączeń VPN...',
+                'please-wait': 'Proszę czekać',
+                'no-vpns-configured': 'Brak skonfigurowanych VPN-ów',
+                'add-first-vpn': 'Dodaj pierwszy VPN aby rozpocząć',
+                'error-loading-vpns': 'Błąd ładowania listy VPN',
+                'check-server-connection': 'Sprawdź połączenie z serwerem',
+                'connected': 'Połączony',
+                'disconnected': 'Rozłączony',
+                'user': 'Użytkownik',
+                'created': 'Utworzony',
+                'last-connection': 'Ostatnie połączenie',
+                'never': 'Nigdy',
+                'status': 'Status',
+                'active': 'Aktywny',
+                'inactive': 'Nieaktywny',
+                'operational': 'Operacyjny',
+                'bridge-active': 'Bridge aktywny',
+                'bridge': 'Bridge',
+                'connect': 'Połącz',
+                'disconnect': 'Rozłącz',
+                'delete': 'Usuń',
+                'add-new-vpn': 'Dodaj nowy VPN',
+                'vpn-name': 'Nazwa VPN',
+                'vpn-name-placeholder': 'np. Biuro Warszawa',
+                'pptp-server': 'Serwer PPTP',
+                'username': 'Nazwa użytkownika',
+                'password': 'Hasło',
+                'description-optional': 'Opis (opcjonalny)',
+                'description-placeholder': 'Opis połączenia VPN',
+                'save-vpn': 'Zapisz VPN',
+                'cancel': 'Anuluj',
+                'system-logs': 'Logi systemu',
+                'loading-logs': 'Ładowanie logów...',
+                'close': 'Zamknij',
+                'connecting': 'Łączenie z VPN...',
+                'error-connecting': '✗ Błąd połączenia z VPN',
+                'error-disconnecting': '✗ Błąd rozłączania VPN',
+                'confirm-delete': 'Czy na pewno chcesz usunąć ten VPN?',
+                'vpn-deleted': '✓ VPN został usunięty',
+                'error-deleting': '✗ Błąd usuwania VPN',
+                'vpn-added': '✓ VPN został dodany',
+                'error-adding': '✗ Błąd dodawania VPN',
+                'no-logs': 'Brak logów',
+                'error-loading-logs': '✗ Błąd ładowania logów',
+                'api-error': 'Błąd API',
+                'error': 'Błąd'
+            }
+        };
+
+        // Language functions
+        function setLanguage(lang) {
+            currentLanguage = lang;
+
+            // Update language buttons
+            document.querySelectorAll('.language-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(`lang-${lang}`).classList.add('active');
+
+            // Update all text elements
+            document.querySelectorAll('[data-lang]').forEach(element => {
+                const key = element.getAttribute('data-lang');
+                if (translations[lang] && translations[lang][key]) {
+                    element.textContent = translations[lang][key];
+                }
+            });
+
+            // Update placeholders
+            document.querySelectorAll('[data-placeholder]').forEach(element => {
+                const key = element.getAttribute('data-placeholder');
+                if (translations[lang] && translations[lang][key]) {
+                    element.placeholder = translations[lang][key];
+                }
+            });
+
+            // Re-render VPN list and system status to update dynamic content
+            renderVpnList();
+            renderSystemStatus();
+
+            // Save language preference
+            localStorage.setItem('vpn-manager-language', lang);
+        }
+
+        function t(key) {
+            return translations[currentLanguage][key] || key;
+        }
+
+        // Update current time
+        function updateCurrentTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString(currentLanguage === 'pl' ? 'pl-PL' : 'en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('currentTime').textContent = timeString;
+        }
+
+        // API calls
+        async function apiCall(url, options = {}) {
+            try {
+                const response = await fetch(`/vpn-bridge/api.php${url}`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    },
+                    ...options
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                return await response.json();
+            } catch (error) {
+                console.error('API call failed:', error);
+                showNotification(`${t('api-error')}: ${error.message}`, 'error');
+                throw error;
+            }
+        }
+
+        // Load VPN list
+        async function loadVpnList() {
+            try {
+                const response = await apiCall('?action=vpns');
+                if (response.success) {
+                    vpnList = response.data;
+                    renderVpnList();
+                }
+            } catch (error) {
+                document.getElementById('vpnGrid').innerHTML = `
+                    <div class="empty-state">
+                        <span class="material-icons">error</span>
+                        <div class="empty-state-title">${t('error-loading-vpns')}</div>
+                        <div class="empty-state-description">${t('check-server-connection')}</div>
+                    </div>
+                `;
+            }
+        }
+
+        // Load system status
+        async function loadSystemStatus() {
+            try {
+                const response = await apiCall('?action=status');
+                if (response.success) {
+                    systemStatus = response.data;
+                    renderSystemStatus();
+                }
+            } catch (error) {
+                const chip = document.getElementById('systemStatusChip');
+                chip.className = 'status-chip inactive';
+                chip.innerHTML = `<div class="status-dot"></div><span>${t('error')}</span>`;
+            }
+        }
+
+        // Render VPN list
+        function renderVpnList() {
+            const container = document.getElementById('vpnGrid');
+
+            if (vpnList.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <span class="material-icons">vpn_key_off</span>
+                        <div class="empty-state-title">${t('no-vpns-configured')}</div>
+                        <div class="empty-state-description">${t('add-first-vpn')}</div>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = vpnList.map(vpn => `
+                <div class="vpn-card ${vpn.is_active ? 'active' : ''}">
+                    <div class="vpn-card-header">
+                        <div>
+                            <div class="vpn-name">${vpn.name}</div>
+                            <div class="vpn-server">${vpn.server}</div>
+                        </div>
+                        <div class="status-chip ${vpn.is_active ? 'active' : 'inactive'}">
+                            <div class="status-dot"></div>
+                            <span>${vpn.is_active ? t('connected') : t('disconnected')}</span>
+                        </div>
+                    </div>
+
+                    <div class="vpn-details">
+                        <div class="vpn-detail">
+                            <div class="vpn-detail-label">${t('user')}</div>
+                            <div class="vpn-detail-value">${vpn.username}</div>
+                        </div>
+                        <div class="vpn-detail">
+                            <div class="vpn-detail-label">${t('created')}</div>
+                            <div class="vpn-detail-value">${new Date(vpn.created_at).toLocaleDateString(currentLanguage === 'pl' ? 'pl-PL' : 'en-US')}</div>
+                        </div>
+                        <div class="vpn-detail">
+                            <div class="vpn-detail-label">${t('last-connection')}</div>
+                            <div class="vpn-detail-value">${vpn.last_connected ? new Date(vpn.last_connected).toLocaleDateString(currentLanguage === 'pl' ? 'pl-PL' : 'en-US') : t('never')}</div>
+                        </div>
+                        <div class="vpn-detail">
+                            <div class="vpn-detail-label">${t('status')}</div>
+                            <div class="vpn-detail-value">${vpn.is_active ? t('active') : t('inactive')}</div>
+                        </div>
+                    </div>
+
+                    ${vpn.description ? `<div class="vpn-description">${vpn.description}</div>` : ''}
+
+                    <div class="vpn-actions">
+                        ${vpn.is_active ?
+                            `<button class="btn btn-danger btn-sm" onclick="disconnectVpn()"><span class="material-icons">power_off</span>${t('disconnect')}</button>` :
+                            `<button class="btn btn-success btn-sm" onclick="connectVpn('${vpn.id}')"><span class="material-icons">play_arrow</span>${t('connect')}</button>`
+                        }
+                        <button class="btn btn-outline btn-sm" onclick="deleteVpn('${vpn.id}')">
+                            <span class="material-icons">delete</span>
+                            ${t('delete')}
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Render system status
+        function renderSystemStatus() {
+            const statusChip = document.getElementById('systemStatusChip');
+            const l2tpStatus = document.getElementById('l2tpStatus');
+            const activeVpn = document.getElementById('activeVpn');
+            const systemLoad = document.getElementById('systemLoad');
+            const memoryUsage = document.getElementById('memoryUsage');
+            const mainStatus = document.getElementById('mainStatus');
+
+            // System jest zdrowy jeśli L2TP działa LUB jest aktywny VPN
+            const isHealthy = systemStatus.main_l2tp || systemStatus.active_vpn || systemStatus.ppp_interface;
+            statusChip.className = `status-chip ${isHealthy ? 'active' : 'inactive'}`;
+            statusChip.innerHTML = `<div class="status-dot"></div><span>${isHealthy ? t('active') : t('inactive')}</span>`;
+
+            // Główny status
+            if (systemStatus.main_l2tp) {
+                mainStatus.textContent = t('operational');
+            } else if (systemStatus.active_vpn || systemStatus.ppp_interface) {
+                mainStatus.textContent = t('bridge-active');
+            } else {
+                mainStatus.textContent = t('inactive');
+            }
+
+            // Pokaż szczegółowy status L2TP
+            if (systemStatus.main_l2tp) {
+                l2tpStatus.textContent = t('active');
+            } else if (systemStatus.active_vpn || systemStatus.ppp_interface) {
+                l2tpStatus.textContent = t('bridge');
+            } else {
+                l2tpStatus.textContent = t('inactive');
+            }
+
+            activeVpn.textContent = systemStatus.active_vpn || t('none');
+            systemLoad.textContent = systemStatus.system_load || '-';
+            memoryUsage.textContent = systemStatus.memory_usage ? `${systemStatus.memory_usage}%` : '-';
+        }
+
+        // Connect VPN
+        async function connectVpn(vpnId) {
+            try {
+                showNotification(t('connecting'), 'success');
+                const response = await apiCall(`?action=connect&id=${vpnId}`, { method: 'POST' });
+
+                if (response.success) {
+                    showNotification(`✓ ${response.message}`, 'success');
+                    await loadVpnList();
+                    await loadSystemStatus();
+                } else {
+                    showNotification(`✗ ${response.message}`, 'error');
+                }
+            } catch (error) {
+                showNotification(t('error-connecting'), 'error');
+            }
+        }
+
+        // Disconnect VPN
+        async function disconnectVpn() {
+            try {
+                const response = await apiCall('?action=disconnect', { method: 'POST' });
+
+                if (response.success) {
+                    showNotification(`✓ ${response.message}`, 'success');
+                    await loadVpnList();
+                    await loadSystemStatus();
+                } else {
+                    showNotification(`✗ ${response.message}`, 'error');
+                }
+            } catch (error) {
+                showNotification(t('error-disconnecting'), 'error');
+            }
+        }
+
+        // Delete VPN
+        async function deleteVpn(vpnId) {
+            if (!confirm(t('confirm-delete'))) return;
+
+            try {
+                const response = await apiCall(`?action=vpn&id=${vpnId}`, { method: 'DELETE' });
+
+                if (response.success) {
+                    showNotification(t('vpn-deleted'), 'success');
+                    await loadVpnList();
+                } else {
+                    showNotification(t('error-deleting'), 'error');
+                }
+            } catch (error) {
+                showNotification(t('error-deleting'), 'error');
+            }
+        }
+
+        // Add VPN
+        async function addVpn(data) {
+            try {
+                const response = await apiCall('?action=vpns', {
+                    method: 'POST',
+                    body: JSON.stringify(data)
+                });
+
+                if (response.success) {
+                    showNotification(t('vpn-added'), 'success');
+                    closeModal('addVpnModal');
+                    document.getElementById('addVpnForm').reset();
+                    await loadVpnList();
+                } else {
+                    showNotification(`✗ ${response.error}`, 'error');
+                }
+            } catch (error) {
+                showNotification(t('error-adding'), 'error');
+            }
+        }
+
+        // Load logs
+        async function loadLogs() {
+            try {
+                const response = await apiCall('?action=logs&lines=50');
+                if (response.success) {
+                    const logsContent = document.getElementById('logsContent');
+                    logsContent.innerHTML = `<pre>${response.data.join('\n') || t('no-logs')}</pre>`;
+                }
+            } catch (error) {
+                document.getElementById('logsContent').innerHTML = `<pre style="color: var(--error);">${t('error-loading-logs')}</pre>`;
+            }
+        }
+
+        // Modal functions
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+            document.body.style.overflow = '';
+        }
+
+        function showAddVpnModal() {
+            showModal('addVpnModal');
+        }
+
+        // Refresh functions
+        async function refreshVpnList() {
+            const icon = document.getElementById('refreshIcon');
+            icon.classList.add('refresh-indicator');
+            await loadVpnList();
+            setTimeout(() => icon.classList.remove('refresh-indicator'), 1000);
+        }
+
+        function refreshStatus() {
+            const icon = document.getElementById('statusRefreshIcon');
+            icon.classList.add('refresh-indicator');
+            loadSystemStatus();
+            setTimeout(() => icon.classList.remove('refresh-indicator'), 1000);
+        }
+
+        function refreshLogs() {
+            const icon = document.getElementById('logsRefreshIcon');
+            icon.classList.add('refresh-indicator');
+            loadLogs();
+            setTimeout(() => icon.classList.remove('refresh-indicator'), 1000);
+        }
+
+        // Notification system
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+
+            const icon = type === 'success' ? 'check_circle' : 'error';
+            notification.innerHTML = `
+                <span class="material-icons">${icon}</span>
+                <span>${message}</span>
+            `;
+
+            document.body.appendChild(notification);
+
+            setTimeout(() => notification.classList.add('show'), 100);
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => document.body.removeChild(notification), 300);
+            }, 4000);
+        }
+
+        // Form handling
+        document.getElementById('addVpnForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const data = {
+                name: document.getElementById('vpnName').value,
+                server: document.getElementById('vpnServer').value,
+                username: document.getElementById('vpnUsername').value,
+                password: document.getElementById('vpnPassword').value,
+                description: document.getElementById('vpnDescription').value
+            };
+
+            addVpn(data);
+        });
+
+        // Close modals on outside click
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('show');
+                    document.body.style.overflow = '';
+                }
+            });
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal.show').forEach(modal => {
+                    modal.classList.remove('show');
+                    document.body.style.overflow = '';
+                });
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded, initializing...');
+
+            // Load saved language preference first
+            const savedLanguage = localStorage.getItem('vpn-manager-language') || 'en';
+            currentLanguage = savedLanguage;
+
+            // Update language buttons
+            document.querySelectorAll('.language-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(`lang-${savedLanguage}`).classList.add('active');
+
+            // Update static text elements
+            document.querySelectorAll('[data-lang]').forEach(element => {
+                const key = element.getAttribute('data-lang');
+                if (translations[savedLanguage] && translations[savedLanguage][key]) {
+                    element.textContent = translations[savedLanguage][key];
+                }
+            });
+
+            // Update placeholders
+            document.querySelectorAll('[data-placeholder]').forEach(element => {
+                const key = element.getAttribute('data-placeholder');
+                if (translations[savedLanguage] && translations[savedLanguage][key]) {
+                    element.placeholder = translations[savedLanguage][key];
+                }
+            });
+
+            // Update time immediately and then every second
+            updateCurrentTime();
+            setInterval(updateCurrentTime, 1000);
+
+            // Load initial data with small delay to ensure DOM is ready
+            setTimeout(() => {
+                console.log('Loading initial data...');
+                loadVpnList();
+                loadSystemStatus();
+                loadLogs();
+            }, 100);
+
+            // Auto-refresh system status every 30 seconds
+            setInterval(() => {
+                loadSystemStatus();
+            }, 30000);
+
+            // Auto-refresh VPN list every 60 seconds
+            setInterval(() => {
+                loadVpnList();
+            }, 60000);
+
+            // Auto-refresh logs every 90 seconds
+            setInterval(() => {
+                loadLogs();
+            }, 90000);
+        });
+    </script>
+</body>
+</html>
